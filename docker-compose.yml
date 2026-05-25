@@ -1,0 +1,36 @@
+services:
+  # Base relacional MySQL — la app necesita MySQL también
+  mysql:
+    image: mysql:8.4
+    container_name: music_rent_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: musicrent_dev
+      MYSQL_DATABASE: music_rent
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Primera vez: crea tablas desde schema.sql
+      - ./backend/sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pmusicrent_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 25s
+
+  # Base no relacional — paso Mongo con Docker
+  mongo:
+    image: mongo:7
+    container_name: music_rent_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mysql_data:
+  mongo_data:

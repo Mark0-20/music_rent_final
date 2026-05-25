@@ -1,0 +1,85 @@
+-- Ejecutar en MySQL Workbench (crear la base antes: CREATE DATABASE music_rent;)
+USE music_rent;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(160) NOT NULL UNIQUE,
+  password_hash CHAR(64) NOT NULL,
+  role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS artists (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  country VARCHAR(120) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS genres (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL UNIQUE,
+  description VARCHAR(255) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS albums (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  artist VARCHAR(255) NOT NULL,
+  artist_id INT NULL,
+  genre_id INT NULL,
+  year INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_albums_artist FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE SET NULL,
+  CONSTRAINT fk_albums_genre FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS songs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  album_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  duration_seconds INT NOT NULL DEFAULT 0,
+  position INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_songs_album FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS customers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(160) NOT NULL,
+  email VARCHAR(160) NOT NULL UNIQUE,
+  phone VARCHAR(40) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS rentals (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NOT NULL,
+  album_id INT NOT NULL,
+  rented_by_user_id INT NULL,
+  rented_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  due_at TIMESTAMP NULL,
+  returned_at TIMESTAMP NULL,
+  status ENUM('active', 'returned', 'late') NOT NULL DEFAULT 'active',
+  CONSTRAINT fk_rentals_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+  CONSTRAINT fk_rentals_album FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
+  CONSTRAINT fk_rentals_user FOREIGN KEY (rented_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_songs_album ON songs(album_id);
+CREATE INDEX idx_albums_artist ON albums(artist_id);
+CREATE INDEX idx_albums_genre ON albums(genre_id);
+CREATE INDEX idx_rentals_customer ON rentals(customer_id);
+CREATE INDEX idx_rentals_album ON rentals(album_id);
+
+INSERT INTO users (name, email, password_hash, role)
+VALUES ('Administrador', 'admin@musicrent.local', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin')
+ON DUPLICATE KEY UPDATE email = email;
