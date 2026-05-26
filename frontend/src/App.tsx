@@ -18,6 +18,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detailedAlbum, setDetailedAlbum] = useState<Album | null>(null);
   const [mongoSnippet, setMongoSnippet] = useState<string | null>(null);
+  console.log(mongoSnippet);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

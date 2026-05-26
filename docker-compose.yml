@@ -5,7 +5,7 @@ services:
     container_name: music_rent_mysql
     restart: unless-stopped
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: musicrent_dev
       MYSQL_DATABASE: music_rent
